@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grid Card Dungeon RPG</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111111;
+      --panel-bg: #181818;
+      --card-bg: #232323;
+      --player-border: #ffd447;
+      --enemy: #ff4b4b;
+      --potion: #2ecc71;
+      --coin: #f5c242;
+      --sword: #3b82f6;
+      --mana: #6b5bff;
+      --text-main: #f5f5f5;
+      --text-soft: #b3b3b3;
+      --accent: #f97316;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+      background-image: url('BackGround.jpg');
+      background-size: cover;
+      background-position: calc(50% + 130px) center;
+      background-repeat: no-repeat;
+    }
+    #app {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      max-width: 260px;
+      background: var(--panel-bg);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .spell-panel-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-soft);
+    }
+    .spell-buttons {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .spell-btn {
+      border-radius: 9px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 4px 5px;
+      background: #262626;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      transition: background 0.12s ease-out, transform 0.16s ease-out, box-shadow 0.16s ease-out, border-color 0.12s ease-out, opacity 0.12s ease-out;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+      font-size: 9px;
+      flex: 1 1 0;
+      min-height: 0;
+    }
+    .spell-btn-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .spell-icon {
+      font-size: 14px;
+      margin-right: 3px;
+    }
+    .spell-name {
+      font-weight: 600;
+      font-size: 10px;
+    }
+    .spell-cost {
+      font-size: 9px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .spell-cost span:first-child {
+      font-size: 11px;
+    }
+    .spell-desc {
+      font-size: 8px;
+      color: var(--text-soft);
+      line-height: 1.2;
+    }
+    .spell-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+      background: #222222;
+    }
+    .spell-btn.disabled {
+      opacity: 0.3;
+      border-style: dashed;
+      border-color: #ff6363;
+      cursor: not-allowed;
+      box-shadow: none;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+    .spell-btn.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(249,115,22,0.5);
+      background: #2b1f16;
+    }
+
+    /* MAIN COLUMN */
+    .main-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      position: relative;
+    }
+    .header {
+      position: relative;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      border-bottom: 2px solid #c5a059;
+      border-radius: 0 0 15px 15px;
+      padding: 15px 30px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+      width: fit-content;
+      margin: 0 auto;
+      max-width: 640px;
+      z-index: 100;
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      gap: 6px;
+    }
+    .hud-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .hud-label {
+      color: var(--text-soft);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .hud-value {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .hud-time-value {
+      font-family: "SF Mono", "Roboto Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: 0.06em;
+    }
+    .hud-emoji {
+      font-size: 15px;
+    }
+
+    .grid-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    /* GAME BOARD ABSOLUTE LAYOUT (bigger square) */
+    #game-board {
+      position: relative;
+      height: 82vh;
+      width: 82vh;
+      max-width: 95vw;
+      max-height: 85vh;
+      margin: 0 auto;
+    }
+    #background-layer,
+    #cards-layer {
+      position: absolute;
+      inset: 0;
+    }
+    #background-layer {
+      z-index: 1;
+    }
+    #cards-layer {
+      z-index: 10;
+    }
+    .grid-slot {
+      position: absolute;
+      width: 19%;
+      height: 19%;
+      border: 2px dashed rgba(255,255,255,0.12);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
+    /* CARDS */
+    .card-wrapper {
+      position: absolute;
+      width: 19%;
+      height: 19%;
+      transition: left 0.3s ease, top 0.3s ease, opacity 0.3s ease;
+      opacity: 1;
+    }
+    .card-wrapper.removed {
+      opacity: 0;
+    }
+
+    /* Transparent container responsible only for transforms / filters */
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      user-select: none;
+      border: 2px solid transparent;
+      filter: brightness(0.4);
+      transform: translateY(0);
+      transition:
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        filter 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    /* Inner content (emoji + stats + visual box) */
+    .card-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 10px;
+      font-size: 24px;
+      pointer-events: none;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.35);
+      color: #fff;
+      overflow: hidden;
+    }
+    .card-content.clipped-corner {
+      clip-path: polygon(50px 0, 100% 0, 100% 100%, 0 100%, 0 50px);
+    }
+    .stat-floating-value {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding-left: 8px;
+      padding-top: 2px;
+      box-sizing: border-box;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 0 5px rgba(0,0,0,0.8);
+      z-index: 50;
+      pointer-events: none;
+      animation: value-bob 3s ease-in-out infinite;
+    }
+    .stat-floating-value.damaged {
+      transform: scale(1.1);
+    }
+
+    /* Colored stat variants */
+    .stat-mana   { color: #00bfff !important; text-shadow: 0 0 5px #00bfff; }
+    .stat-potion { color: #32cd32 !important; text-shadow: 0 0 5px #32cd32; }
+    .stat-sword  { color: #cd853f !important; text-shadow: 0 0 5px #8b4513; }
+    .stat-gold   { color: #ffd700 !important; text-shadow: 0 0 5px #b8860b; }
+    .stat-enemy  { color: #ffffff; }
+    .stat-enemy.damaged {
+      color: #ff0000 !important;
+      text-shadow: 0 0 10px #ff0000;
+    }
+    @keyframes value-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .card-emoji {
+      font-size: 26px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .card-info {
+      position: absolute;
+      bottom: 4px;
+      right: 5px;
+      left: 5px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .card-info span {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+
+    /* Type colors now live on card-content */
+    .card-content.player {
+      background-image: url('Wizard.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    .card-content.enemy { background: var(--enemy); }
+    .card-content.potion { background: var(--potion); }
+    .card-content.coin { background: var(--coin); }
+    .card-content.sword { background: var(--sword); }
+    .card-content.mana { background: var(--mana); }
+
+    /* FOCUS HIGHLIGHTING */
+    .card-wrapper.active .card-inner {
+      filter: brightness(1);
+      cursor: pointer;
+    }
+    .card-wrapper.spell-target .card-inner {
+      filter: brightness(1);
+      border: 4px dashed #ffffff;
+      box-sizing: border-box;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+    .card-wrapper.lifted .card-inner {
+      transform: translateY(-15px);
+      filter: brightness(1.2);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    }
+    .card-wrapper.lifted {
+      z-index: 1000 !important;
+    }
+    .card-wrapper.dim .card-inner {
+      filter: brightness(0.3) !important;
+    }
+
+    /* Floating animation for lifted cards */
+    .card-wrapper.lifted .card-content {
+      animation: float-bob 2s ease-in-out infinite;
+    }
+    @keyframes float-bob {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    /* ATTACK / MAGIC EFFECTS */
+    .card-inner.player.attack-up    { transform: translateY(-10%); }
+    .card-inner.player.attack-down  { transform: translateY(10%); }
+    .card-inner.player.attack-left  { transform: translateX(-10%); }
+    .card-inner.player.attack-right { transform: translateX(10%); }
+
+    .card-inner.enemy.shake,
+    .card-inner.coin.shake,
+    .card-inner.mana.shake,
+    .card-inner.sword.shake {
+      animation: shake 0.18s ease-in-out;
+    }
+    @keyframes shake {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(-4%, 0); }
+      50% { transform: translate(4%, 0); }
+      75% { transform: translate(-2%, 0); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .card-inner.magic-flash {
+      animation: magicFlash 0.22s ease-out;
+    }
+    @keyframes magicFlash {
+      0% {
+        box-shadow: 0 0 0 rgba(255,255,255,0);
+        filter: brightness(1);
+      }
+      40% {
+        box-shadow: 0 0 10px rgba(255,255,255,0.9);
+        filter: brightness(1.4);
+      }
+      100% {
+        box-shadow: 0 0 0 rgba(255,255,255,0);
+        filter: brightness(1);
+      }
+    }
+
+    .footer {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      margin-top: 4px;
+      color: var(--text-soft);
+    }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #2d2d2d;
+      color: var(--text-main);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.12s ease-out, transform 0.06s ease-out, box-shadow 0.06s ease-out;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+      background: #252525;
+    }
+    .btn.hidden {
+      visibility: hidden;
+    }
+
+    /* MAIN MENU */
+    #main-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url('Menu.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 1;
+      transition: opacity 0.4s ease-out;
+    }
+    #main-menu.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .menu-content {
+      background: rgba(0,0,0,0.88);
+      padding: 22px 24px 26px;
+      border-radius: 16px;
+      max-width: 360px;
+      width: 86%;
+      text-align: center;
+      border: 1px solid rgba(197,160,89,0.6);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.9);
+    }
+    .menu-title {
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      font-size: 26px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      background: linear-gradient(120deg, #f7e9b5, #c5a059, #f7e9b5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px rgba(0,0,0,0.9);
+    }
+    .menu-subtitle {
+      font-size: 12px;
+      color: #f0e6d2;
+      margin-bottom: 18px;
+    }
+    .menu-subtitle span#best-score {
+      font-weight: 700;
+      color: #f7e9b5;
+    }
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .menu-btn {
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #c5a059;
+      color: #f0e6d2;
+      padding: 18px 45px;
+      font-size: 1.6rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(0,0,0,0.8);
+      transition:
+        background 0.12s ease-out,
+        color 0.12s ease-out,
+        box-shadow 0.18s ease-out,
+        transform 0.06s ease-out,
+        border-color 0.12s ease-out;
+    }
+    .menu-btn:hover {
+      background: #c5a059;
+      color: #1a1a1a;
+      box-shadow: 0 0 25px rgba(197, 160, 89, 0.6);
+      transform: translateY(-1px);
+    }
+    .menu-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 0 8px rgba(0,0,0,0.95);
+    }
+
+    /* HELP MODAL */
+    #help-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.9);
+    }
+    #help-modal.active {
+      display: flex;
+    }
+    .help-modal-inner {
+      max-width: 320px;
+      width: 85%;
+      background: rgba(0,0,0,0.9);
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.85);
+      color: #ffffff;
+      font-size: 12px;
+      position: relative;
+    }
+    .help-modal-title {
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #ffd700;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .help-modal-close {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #ffffff;
+      opacity: 0.8;
+    }
+    .help-modal-close:hover {
+      opacity: 1;
+    }
+    .help-modal-text {
+      line-height: 1.5;
+      font-size: 11px;
+      color: #f5f5f5;
+    }
+    .help-modal-text p + p {
+      margin-top: 6px;
+    }
+
+    /* RESULT MODAL */
+    #result-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.95);
+    }
+    #result-modal.active {
+      display: flex;
+    }
+    .result-modal-inner {
+      max-width: 320px;
+      width: 85%;
+      background: rgba(0,0,0,0.95);
+      border-radius: 16px;
+      padding: 18px 20px 20px;
+      border: 1px solid rgba(197,160,89,0.7);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.9);
+      text-align: center;
+      font-family: 'Cinzel', 'Times New Roman', serif;
+    }
+    .result-title {
+      font-size: 18px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .result-text {
+      font-size: 13px;
+      margin-bottom: 16px;
+      font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .overlay-inner {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(6px);
+      text-align: center;
+      font-size: 13px;
+      max-width: 260px;
+      pointer-events: auto;
+    }
+    .overlay-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .overlay-sub {
+      font-size: 12px;
+      margin-bottom: 10px;
+      color: var(--text-soft);
+    }
+    .overlay-btns {
+      display: flex;
+      justify-content: center;
+    }
+
+    #app.dead #game-board {
+      opacity: 0.35;
+    }
+
+    @media (max-width: 800px) {
+      #app {
+        padding: 6px;
+        gap: 6px;
+      }
+      .sidebar {
+        width: 220px;
+        min-width: 220px;
+        max-width: 220px;
+      }
+      #game-board {
+        height: 78vh;
+        width: 78vh;
+        max-width: 95vw;
+        max-height: 80vh;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- LEFT: SPELL PANEL -->
+  <div class="sidebar">
+    <div class="spell-panel-title">Заклинания</div>
+    <div class="spell-buttons">
+      <button class="spell-btn" data-spell="whirlwind" id="spell-whirlwind">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">🌪️</span>
+            <span class="spell-name">Вихрь</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>3</span>
+          </div>
+        </div>
+        <div class="spell-desc">Повреждает врагов рядом с тобой.</div>
+      </button>
+
+      <button class="spell-btn" data-spell="beam" id="spell-beam">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">⚡</span>
+            <span class="spell-name">Силовой луч</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>2</span>
+          </div>
+        </div>
+        <div class="spell-desc">Пронзает врагов по прямой линии.</div>
+      </button>
+
+      <button class="spell-btn" data-spell="midas" id="spell-midas">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">🖐️</span>
+            <span class="spell-name">Мидас</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>3</span>
+          </div>
+        </div>
+        <div class="spell-desc">Собирает всё золото. Новые монеты — враги.</div>
+      </button>
+
+      <button class="spell-btn" data-spell="heal" id="spell-heal">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">💖</span>
+            <span class="spell-name">Исцеление</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>3</span>
+          </div>
+        </div>
+        <div class="spell-desc">Полностью восстанавливает здоровье.</div>
+      </button>
+
+      <button class="spell-btn" data-spell="swap" id="spell-swap">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">🔄</span>
+            <span class="spell-name">Обмен</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>2</span>
+          </div>
+        </div>
+        <div class="spell-desc">Меняется местами с выбранной картой.</div>
+      </button>
+
+      <button class="spell-btn" data-spell="teleport" id="spell-teleport">
+        <div class="spell-btn-head">
+          <div>
+            <span class="spell-icon">🌀</span>
+            <span class="spell-name">Побег</span>
+          </div>
+          <div class="spell-cost">
+            <span>🔮</span><span>10</span>
+          </div>
+        </div>
+        <div class="spell-desc">Телепорт. Побег из подземелья с твоим золотом.</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- RIGHT: HUD + BOARD -->
+  <div class="main-column">
+    <div class="header">
+      <div class="hud">
+        <div class="hud-group">
+          <div class="hud-label">HP</div>
+          <div class="hud-value">
+            <span class="hud-emoji">🧙‍♂️</span>
+            <span id="hud-hp">20 / 20</span>
+          </div>
+        </div>
+        <div class="hud-group">
+          <div class="hud-label">Оружие</div>
+          <div class="hud-value">
+            <span class="hud-emoji">🛡️</span>
+            <span id="hud-weapon">0</span>
+          </div>
+        </div>
+        <div class="hud-group">
+          <div class="hud-label">Мана</div>
+          <div class="hud-value">
+            <span class="hud-emoji">🔮</span>
+            <span id="hud-mana">0 / 10</span>
+          </div>
+        </div>
+        <div class="hud-group">
+          <div class="hud-label">Время</div>
+          <div class="hud-value">
+            <span class="hud-emoji">🕒</span>
+            <span id="hud-time" class="hud-time-value">08:00</span>
+          </div>
+        </div>
+        <div class="hud-group">
+          <div class="hud-label">Очки</div>
+          <div class="hud-value">
+            <span class="hud-emoji">💰</span>
+            <span id="hud-score">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-wrapper">
+      <div id="game-board">
+        <div id="background-layer"></div>
+        <div id="cards-layer"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span id="footer-info">Касайся соседних карт. Заклинания — слева.</span>
+      <button class="btn hidden" id="restart-btn">Заново</button>
+    </div>
+
+    <div id="main-menu">
+      <div class="menu-content">
+        <h1 class="menu-title">TIMELESS DUNGEON</h1>
+        <div class="menu-subtitle">
+          Best Run: <span id="best-score">0</span> Gold
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-enter-dungeon" class="menu-btn">Enter the Dungeon</button>
+          <button id="btn-grimoire" class="menu-btn">Grimoire (Guide)</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="help-modal">
+      <div class="help-modal-inner">
+        <div class="help-modal-title">Grimoire</div>
+        <div class="help-modal-close" id="help-close-btn">✕</div>
+        <div class="help-modal-text">
+          <p>💀 <strong>THE RULE:</strong> Если вы умрете — золото исчезнет. Единственный способ сохранить добычу — использовать заклинание <strong>"Teleport"</strong>.</p>
+          <p>📜 <strong>ЦЕЛЬ:</strong> Накопить 10 Маны для Телепорта.</p>
+          <p>⏳ <strong>ВРЕМЯ:</strong><br>
+             08:00 - 12:00: Безопасно.<br>
+             12:00 - 20:00: Враги крепчают.<br>
+             20:00 - 23:50: Смертельная опасность.<br>
+             <strong>24:00 (MIDNIGHT):</strong> Приходят Бессмертные Ужасы.
+          </p>
+          <p>🔮 <strong>МАГИЯ (Макс 12):</strong><br>
+             Луч (2): Наносит 7 урона ВСЕМ врагам на линии. Пробивает насквозь.<br>
+             Обмен (2), Вихрь (3), Мидас (3), Хил (3).<br>
+             <strong>ТЕЛЕПОРТ (10):</strong> Побег и Победа.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay" style="display:none;">
+      <div class="overlay-inner">
+        <div class="overlay-title" id="overlay-title">Игра окончена</div>
+        <div class="overlay-sub" id="overlay-sub"></div>
+        <div class="overlay-btns">
+          <button class="btn" id="overlay-restart">Играть ещё</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result-modal">
+      <div class="result-modal-inner">
+        <h2 id="result-title" class="result-title"></h2>
+        <p id="result-text" class="result-text"></p>
+        <button id="result-menu-btn" class="menu-btn">Return to Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ASSETS_TO_PRELOAD = [
+  'Wizard.jpg',
+  'Small  Pocket(1).jpg', // ДВА ПРОБЕЛА ТУТ
+  'Bag of Coins(2).jpg', 'Big Bag of Coins(3).jpg', 'Vessel of Coins(4).jpg', 'Coin Chest(5).jpg',
+  'Rusty Dagger(2).jpg', 'Simple bronze sword(3).jpg', 'Fighting Axe(4).jpg', 
+  'Knight Sword(5).jpg', 'Runic Enchanted Sword(6).jpg', 'Legendary Sword(7).jpg',
+  'Apple(2).jpg', 'Bondage(3).jpg', 'Small Flask(4).jpg', 'Starry Flask(5).jpg', 'Divine Healing(6).jpg',
+  'Mana Orb(1).jpg', 'Double Orb(2).jpg', 'Mana Potion(3).jpg',
+  'Annoying Rat(3).jpg', 'Slime(4).jpg', 'Skeleton(5).jpg', 'Minotaur(6).jpg',
+  'Troll(7).jpg', 'Phantom(8).jpg', 'Tarrasque(9).jpg', 'Horror(inf).jpg',
+  'BackGround.jpg', 'Menu.jpg'
+];
+
+(function preload() {
+  console.log("Starting asset preloader...");
+  ASSETS_TO_PRELOAD.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+})();
+
+(function () {
+  const ROWS = 5;
+  const COLS = 5;
+  const BOARD_SIZE = ROWS * COLS;
+  const CENTER_INDEX = 12;
+
+  const PLAYER_MAX_HP = 20;
+  const PLAYER_MAX_MANA = 12;
+  const ENEMY_MIN = 3;
+  const ENEMY_MAX = 9;
+  const POTION_MIN = 4;
+  const POTION_MAX = 7;
+  const SWORD_MIN = 3;
+  const SWORD_MAX = 6;
+  const MANA_MIN = 1;
+  const MANA_MAX = 3;
+
+  const SPAWN_PROBS = {
+    enemy: 0.28,
+    potion: 0.14,
+    coin: 0.24,
+    sword: 0.14,
+    mana: 0.20
+  };
+
+  const cardsLayer = document.getElementById('cards-layer');
+  const backgroundLayer = document.getElementById('background-layer');
+
+  const gameBoardEl = document.getElementById('game-board');
+
+  const hudHpEl = document.getElementById('hud-hp');
+  const hudWeaponEl = document.getElementById('hud-weapon');
+  const hudScoreEl = document.getElementById('hud-score');
+  const hudManaEl = document.getElementById('hud-mana');
+  const hudTimeEl = document.getElementById('hud-time');
+  const restartBtn = document.getElementById('restart-btn');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlaySub = document.getElementById('overlay-sub');
+  const overlayRestart = document.getElementById('overlay-restart');
+  const gameRoot = document.getElementById('app');
+
+  const resultModalEl = document.getElementById('result-modal');
+  const resultTitleEl = document.getElementById('result-title');
+  const resultTextEl = document.getElementById('result-text');
+  const resultMenuBtn = document.getElementById('result-menu-btn');
+
+  const spellButtons = {
+    whirlwind: document.getElementById('spell-whirlwind'),
+    beam: document.getElementById('spell-beam'),
+    midas: document.getElementById('spell-midas'),
+    heal: document.getElementById('spell-heal'),
+    swap: document.getElementById('spell-swap'),
+    teleport: document.getElementById('spell-teleport')
+  };
+
+  // Main menu / help modal elements
+  const mainMenuEl = document.getElementById('main-menu');
+  const bestScoreEl = document.getElementById('best-score');
+  const btnEnterGame = document.getElementById('btn-enter-dungeon');
+  const btnGrimoire = document.getElementById('btn-grimoire');
+  const helpModalEl = document.getElementById('help-modal');
+  const helpCloseBtn = document.getElementById('help-close-btn');
+
+  const SPELL_COSTS = {
+    whirlwind: 3,
+    beam: 2,
+    midas: 3,
+    heal: 3,
+    swap: 2,
+    teleport: 10
+  };
+
+  let board = new Array(BOARD_SIZE).fill(null);
+  let timeMinutes = 8 * 60; // starts at 08:00
+  let gameStarted = false;
+
+  let player = {
+    id: 1,
+    type: 'player',
+    hp: PLAYER_MAX_HP,
+    maxHp: PLAYER_MAX_HP,
+    weapon: 0,
+    score: 0,
+    mana: 0,
+    maxMana: PLAYER_MAX_MANA
+  };
+  let nextId = 2;
+  let playerIndex = CENTER_INDEX;
+  let turns = 0;
+  let isDead = false;
+  let isBusy = false;
+
+  /** @type {Map<number, HTMLDivElement>} */
+  const domCards = new Map(); // id -> card-wrapper
+
+  let selectedSpell = null;
+  let spellTargets = new Set();
+  let pendingIndices = [];
+  let midasCurseActive = false;
+
+  function loadBestScore() {
+    const stored = localStorage.getItem('dungeon_record');
+    const best = stored ? Number(stored) || 0 : 0;
+    if (bestScoreEl) {
+      bestScoreEl.textContent = String(best);
+    }
+    return best;
+  }
+
+  function updateBestScore(currentGold) {
+    const prev = loadBestScore();
+    const best = Math.max(prev, currentGold);
+    localStorage.setItem('dungeon_record', String(best));
+    if (bestScoreEl) {
+      bestScoreEl.textContent = String(best);
+    }
+  }
+
+  function formatTime(totalMinutes) {
+    const dayMinutes = 24 * 60;
+    const normalized = ((totalMinutes % dayMinutes) + dayMinutes) % dayMinutes;
+    const hours = Math.floor(normalized / 60);
+    const minutes = normalized % 60;
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  function initBackgroundSlots() {
+    backgroundLayer.innerHTML = '';
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      const r = Math.floor(i / COLS);
+      const c = i % COLS;
+      const slot = document.createElement('div');
+      slot.className = 'grid-slot';
+      slot.style.left = (c * 20) + '%';
+      slot.style.top = (r * 20) + '%';
+      backgroundLayer.appendChild(slot);
+    }
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function createRandomCard() {
+    const roll = Math.random();
+    let card;
+    const currentHour = Math.floor(timeMinutes / 60);
+
+    if (roll < SPAWN_PROBS.enemy) {
+      // Midnight hard enrage: only Horror spawns
+      if (timeMinutes >= 24 * 60) {
+        card = { type: 'enemy', val: Infinity, maxVal: Infinity };
+      } else {
+        // Enemy scaling
+        const enemyMax = Math.min(9, 4 + (currentHour - 8));
+        let enemyMin;
+        if (currentHour < 12) {
+          enemyMin = 3;
+        } else {
+          enemyMin = Math.min(9, 3 + 1 + Math.floor((currentHour - 12) / 2));
+        }
+        const minVal = Math.max(3, Math.min(enemyMin, enemyMax));
+        const maxVal = Math.max(minVal, enemyMax);
+        const v = randInt(minVal, maxVal);
+        card = { type: 'enemy', val: v, maxVal: v };
+      }
+    } else if (roll < SPAWN_PROBS.enemy + SPAWN_PROBS.potion) {
+      card = { type: 'potion', val: randInt(POTION_MIN, POTION_MAX) };
+    } else if (roll < SPAWN_PROBS.enemy + SPAWN_PROBS.potion + SPAWN_PROBS.coin) {
+      if (midasCurseActive) {
+        // Midas curse turns coins into scaled enemies
+        if (timeMinutes >= 24 * 60) {
+          card = { type: 'enemy', val: Infinity, maxVal: Infinity };
+        } else {
+          const enemyMax = Math.min(9, 4 + (currentHour - 8));
+          let enemyMin;
+          if (currentHour < 12) {
+            enemyMin = 3;
+          } else {
+            enemyMin = Math.min(9, 3 + 1 + Math.floor((currentHour - 12) / 2));
+          }
+          const minVal = Math.max(3, Math.min(enemyMin, enemyMax));
+          const maxVal = Math.max(minVal, enemyMax);
+          const v = randInt(minVal, maxVal);
+          card = { type: 'enemy', val: v, maxVal: v };
+        }
+      } else {
+        // Gold scaling
+        const rawGoldMax = 1 + Math.floor((currentHour - 8) / 3);
+        const rawGoldMin = 1 + Math.floor((currentHour - 8) / 6);
+        const goldMax = Math.min(5, Math.max(1, rawGoldMax));
+        const goldMin = Math.min(3, Math.max(1, rawGoldMin));
+        const minVal = Math.min(goldMin, goldMax);
+        const maxVal = Math.max(goldMax, minVal);
+        const v = randInt(minVal, maxVal);
+        card = { type: 'coin', val: v };
+      }
+    } else if (roll < SPAWN_PROBS.enemy + SPAWN_PROBS.potion + SPAWN_PROBS.coin + SPAWN_PROBS.sword) {
+      card = { type: 'sword', val: randInt(SWORD_MIN, SWORD_MAX) };
+    } else {
+      // Mana scaling
+      const manaMax = currentHour >= 12 ? 2 : 3;
+      const manaMin = 1;
+      const v = randInt(manaMin, manaMax);
+      card = { type: 'mana', val: v };
+    }
+    card.id = nextId++;
+    return card;
+  }
+
+  function indexToRC(index) {
+    const r = Math.floor(index / COLS);
+    const c = index % COLS;
+    return { r, c };
+  }
+
+  function rcToIndex(r, c) {
+    return r * COLS + c;
+  }
+
+  function isAdjacent(a, b) {
+    const ar = Math.floor(a / COLS);
+    const ac = a % COLS;
+    const br = Math.floor(b / COLS);
+    const bc = b % COLS;
+    const dr = Math.abs(ar - br);
+    const dc = Math.abs(ac - bc);
+    return (dr + dc === 1);
+  }
+
+  function applyColumnGravity(col) {
+    if (col < 0 || col >= COLS) return;
+    let moved;
+    do {
+      moved = false;
+      for (let r = ROWS - 1; r > 0; r--) {
+        const idx = rcToIndex(r, col);
+        const aboveIdx = rcToIndex(r - 1, col);
+        const cell = board[idx];
+        const above = board[aboveIdx];
+
+        if (cell && cell.type === 'player') continue;
+        if (above && above.type === 'player') continue;
+
+        if (cell === null && above !== null) {
+          board[idx] = above;
+          board[aboveIdx] = null;
+          moved = true;
+        }
+      }
+    } while (moved);
+
+    for (let r = 0; r < ROWS; r++) {
+      const idx = rcToIndex(r, col);
+      if (board[idx] === null) {
+        board[idx] = createRandomCard();
+      }
+    }
+  }
+
+  function showGameOver(isVictory) {
+    isDead = true;
+    isBusy = true;
+    gameRoot.classList.add('dead');
+
+    if (!resultModalEl || !resultTitleEl || !resultTextEl) return;
+
+    if (isVictory) {
+      resultTitleEl.textContent = 'TIMELINE ESCAPED';
+      resultTitleEl.style.color = '#f7e9b5';
+      resultTextEl.textContent = `You secured ${player.score} Gold.`;
+      resultTextEl.style.color = '#f7e9b5';
+      updateBestScore(player.score);
+    } else {
+      resultTitleEl.textContent = 'LOST IN TIME';
+      resultTitleEl.style.color = '#ff3333';
+      resultTextEl.textContent = 'You died. All gold lost to the void.';
+      resultTextEl.style.color = '#ff3333';
+      // Do not update best score on death
+    }
+
+    resultModalEl.classList.add('active');
+  }
+
+  function returnToMenu() {
+    if (resultModalEl) {
+      resultModalEl.classList.remove('active');
+    }
+
+    if (gameBoardEl) {
+      gameBoardEl.style.display = 'none';
+    }
+
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+
+    if (mainMenuEl) {
+      mainMenuEl.style.display = 'flex';
+      mainMenuEl.classList.remove('hidden');
+    }
+
+    gameRoot.classList.remove('dead');
+    isDead = false;
+    isBusy = false;
+    gameStarted = false;
+
+    loadBestScore();
+    resetGame();
+  }
+
+  function hideOverlay() {
+    overlay.style.display = 'none';
+  }
+
+  function clearSpellSelection() {
+    selectedSpell = null;
+    spellTargets.clear();
+    checkSpellAvailability();
+  }
+
+  function computeSpellTargets(spellId) {
+    spellTargets.clear();
+    if (spellId === 'whirlwind') {
+      const { r: pr, c: pc } = indexToRC(playerIndex);
+      for (let r = pr - 1; r <= pr + 1; r++) {
+        for (let c = pc - 1; c <= pc + 1; c++) {
+          if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+          const idx = rcToIndex(r, c);
+          if (idx === playerIndex) continue;
+          const card = board[idx];
+          if (card && card.type === 'enemy') {
+            spellTargets.add(idx);
+          }
+        }
+      }
+    } else if (spellId === 'beam') {
+      const { r: pr, c: pc } = indexToRC(playerIndex);
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        if (i === playerIndex) continue;
+        const card = board[i];
+        if (!card || card.type !== 'enemy') continue;
+        const { r, c } = indexToRC(i);
+        if (r === pr || c === pc) {
+          spellTargets.add(i);
+        }
+      }
+    } else if (spellId === 'midas') {
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        const card = board[i];
+        if (card && card.type === 'coin') {
+          spellTargets.add(i);
+        }
+      }
+    } else if (spellId === 'heal') {
+      spellTargets.add(playerIndex);
+    } else if (spellId === 'swap') {
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        if (i === playerIndex) continue;
+        if (board[i]) spellTargets.add(i);
+      }
+    } else if (spellId === 'teleport') {
+      spellTargets.add(playerIndex);
+    }
+  }
+
+  function selectSpell(spellId) {
+    if (isDead || isBusy || !gameStarted) return;
+    const cost = SPELL_COSTS[spellId] || 0;
+    if (player.mana < cost) return;
+
+    pendingIndices = [];
+
+    if (selectedSpell === spellId) {
+      clearSpellSelection();
+      render();
+      return;
+    }
+
+    selectedSpell = spellId;
+    computeSpellTargets(spellId);
+    checkSpellAvailability();
+    render();
+  }
+
+  function executeSpell(spellId, triggerIndex) {
+    if (isDead || isBusy || !gameStarted) return;
+    const cost = SPELL_COSTS[spellId] || 0;
+    if (player.mana < cost) {
+      clearSpellSelection();
+      pendingIndices = [];
+      render();
+      return;
+    }
+    isBusy = true;
+
+    const affectedIndices = new Set(pendingIndices);
+
+    affectedIndices.forEach(idx => {
+      const card = board[idx];
+      if (!card) return;
+      const wrapper = domCards.get(card.id);
+      if (!wrapper) return;
+      const inner = wrapper.querySelector('.card-inner');
+      if (inner) {
+        inner.classList.add('magic-flash');
+        setTimeout(() => inner.classList.remove('magic-flash'), 220);
+      }
+    });
+
+    player.mana = Math.max(0, player.mana - cost);
+
+    if (spellId === 'whirlwind') {
+      setTimeout(() => {
+        const colsToUpdate = new Set();
+        affectedIndices.forEach(idx => {
+          const card = board[idx];
+          if (!card || card.type !== 'enemy') return;
+          card.val -= 5;
+          if (card.val <= 0) {
+            board[idx] = null;
+            const { c } = indexToRC(idx);
+            colsToUpdate.add(c);
+          }
+        });
+        colsToUpdate.forEach(col => applyColumnGravity(col));
+        timeMinutes += 10;
+        turns++;
+        clearSpellSelection();
+        pendingIndices = [];
+        isBusy = false;
+        render();
+      }, 220);
+    } else if (spellId === 'midas') {
+      setTimeout(() => {
+        const colsToUpdate = new Set();
+        affectedIndices.forEach(idx => {
+          const card = board[idx];
+          if (!card || card.type !== 'coin') return;
+          player.score += card.val;
+          board[idx] = null;
+          const { c } = indexToRC(idx);
+          colsToUpdate.add(c);
+        });
+        midasCurseActive = true;
+        colsToUpdate.forEach(col => applyColumnGravity(col));
+        midasCurseActive = false;
+
+        timeMinutes += 10;
+        turns++;
+        clearSpellSelection();
+        pendingIndices = [];
+        isBusy = false;
+        render();
+      }, 220);
+    } else if (spellId === 'heal') {
+      setTimeout(() => {
+        player.hp = player.maxHp;
+        timeMinutes += 10;
+        turns++;
+        clearSpellSelection();
+        pendingIndices = [];
+        isBusy = false;
+        render();
+      }, 220);
+    } else if (spellId === 'teleport') {
+      setTimeout(() => {
+        timeMinutes += 10;
+        turns++;
+        clearSpellSelection();
+        pendingIndices = [];
+        isBusy = false;
+        render();
+        showGameOver(true);
+      }, 220);
+    } else if (spellId === 'beam') {
+      setTimeout(() => {
+        castBeam(triggerIndex);
+      }, 220);
+    } else if (spellId === 'swap') {
+      setTimeout(() => {
+        castSwap(triggerIndex);
+      }, 220);
+    }
+  }
+
+  function castBeam(targetIndex) {
+    setTimeout(() => {
+      const { r: pr, c: pc } = indexToRC(playerIndex);
+      const { r: tr, c: tc } = indexToRC(targetIndex);
+
+      let dr = 0;
+      let dc = 0;
+      if (tr === pr) {
+        dc = tc > pc ? 1 : -1;
+      } else if (tc === pc) {
+        dr = tr > pr ? 1 : -1;
+      } else {
+        isBusy = false;
+        clearSpellSelection();
+        pendingIndices = [];
+        render();
+        return;
+      }
+
+      const colsToUpdate = new Set();
+      let r = pr + dr;
+      let c = pc + dc;
+      const DAMAGE = 7;
+
+      while (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+        const idx = rcToIndex(r, c);
+        const card = board[idx];
+        if (card && card.type === 'enemy') {
+          card.val -= DAMAGE;
+          const { c: col } = indexToRC(idx);
+          colsToUpdate.add(col);
+          if (card.val <= 0) {
+            board[idx] = null;
+          }
+        }
+        r += dr;
+        c += dc;
+      }
+
+      colsToUpdate.forEach(col => applyColumnGravity(col));
+      timeMinutes += 10;
+      turns++;
+      clearSpellSelection();
+      pendingIndices = [];
+      isBusy = false;
+      render();
+    }, 220);
+  }
+
+  function castSwap(targetIndex) {
+    const targetCard = board[targetIndex];
+    if (!targetCard || targetIndex === playerIndex) {
+      clearSpellSelection();
+      pendingIndices = [];
+      render();
+      isBusy = false;
+      return;
+    }
+
+    const playerWrapper = domCards.get(player.id);
+    const targetWrapper = domCards.get(targetCard.id);
+    const playerInner = playerWrapper && playerWrapper.querySelector('.card-inner');
+    const targetInner = targetWrapper && targetWrapper.querySelector('.card-inner');
+    if (playerInner) playerInner.classList.add('magic-flash');
+    if (targetInner) targetInner.classList.add('magic-flash');
+
+    setTimeout(() => {
+      if (playerInner) playerInner.classList.remove('magic-flash');
+      if (targetInner) targetInner.classList.remove('magic-flash');
+
+      board[playerIndex] = targetCard;
+      board[targetIndex] = player;
+      playerIndex = targetIndex;
+
+      timeMinutes += 10;
+      turns++;
+      clearSpellSelection();
+      pendingIndices = [];
+      isBusy = false;
+      render();
+    }, 220);
+  }
+
+  function checkSpellAvailability() {
+    const mana = Number(player.mana) || 0;
+    Object.entries(spellButtons).forEach(([id, btn]) => {
+      const cost = SPELL_COSTS[id] || 0;
+      btn.classList.remove('active');
+      if (mana >= cost && !isDead) {
+        btn.classList.remove('disabled');
+        btn.style.cursor = 'pointer';
+      } else {
+        btn.classList.add('disabled');
+      }
+    });
+    if (!isDead && selectedSpell && spellButtons[selectedSpell]) {
+      spellButtons[selectedSpell].classList.add('active');
+    }
+  }
+
+  function performMove(targetIndex) {
+    const target = board[targetIndex];
+    if (!target) return;
+    isBusy = true;
+
+    const oldIndex = playerIndex;
+    const oldRC = indexToRC(oldIndex);
+    const targetRC = indexToRC(targetIndex);
+    const dr = targetRC.r - oldRC.r;
+    const dc = targetRC.c - oldRC.c;
+
+    if (target.type === 'enemy') {
+      const playerWrapper = domCards.get(player.id);
+      const enemyWrapper = domCards.get(target.id);
+      const playerInner = playerWrapper && playerWrapper.querySelector('.card-inner');
+      const enemyInner = enemyWrapper && enemyWrapper.querySelector('.card-inner');
+
+      if (playerInner && enemyInner) {
+        let dirClass = '';
+        if (dr === -1 && dc === 0) dirClass = 'attack-up';
+        else if (dr === 1 && dc === 0) dirClass = 'attack-down';
+        else if (dr === 0 && dc === -1) dirClass = 'attack-left';
+        else if (dr === 0 && dc === 1) dirClass = 'attack-right';
+
+        if (dirClass) {
+          playerInner.classList.add(dirClass, 'player');
+          enemyInner.classList.add('shake');
+          setTimeout(() => {
+            playerInner.classList.remove('attack-up', 'attack-down', 'attack-left', 'attack-right');
+            enemyInner.classList.remove('shake');
+          }, 180);
+        }
+      }
+
+      const enemyVal = target.val;
+      const rawDamage = enemyVal - player.weapon;
+      const damage = rawDamage > 0 ? rawDamage : 0;
+      player.hp -= damage;
+      if (player.hp < 0) player.hp = 0;
+
+      if (player.weapon > 0) {
+        player.weapon -= 1;
+        if (player.weapon < 0) player.weapon = 0;
+      }
+
+      board[targetIndex] = null;
+    } else if (target.type === 'potion') {
+      player.hp = Math.min(player.maxHp, player.hp + target.val);
+      board[targetIndex] = null;
+    } else if (target.type === 'coin') {
+      player.score += target.val;
+      board[targetIndex] = null;
+    } else if (target.type === 'sword') {
+      // Only equip the new weapon if it is strictly stronger; otherwise discard it.
+      if (target.val > player.weapon) {
+        player.weapon = target.val;
+      } else {
+        // Optional bonus for discarding weaker gear
+        player.score += 1;
+      }
+      board[targetIndex] = null;
+    } else if (target.type === 'mana') {
+      player.mana = Math.min(player.maxMana, player.mana + target.val);
+      board[targetIndex] = null;
+    }
+
+    if (player.hp <= 0) {
+      player.hp = 0;
+      applyColumnGravity(targetRC.c);
+      timeMinutes += 10;
+      turns++;
+      render();
+      showGameOver(false);
+      return;
+    }
+
+    board[oldIndex] = null;
+    board[targetIndex] = player;
+    playerIndex = targetIndex;
+
+    if (dr === -1 && dc === 0) {
+      let sideCol;
+      if (oldRC.c === 0) {
+        sideCol = 1;
+      } else if (oldRC.c === COLS - 1) {
+        sideCol = COLS - 2;
+      } else {
+        sideCol = Math.random() < 0.5 ? oldRC.c - 1 : oldRC.c + 1;
+      }
+
+      const sideIndex = rcToIndex(oldRC.r, sideCol);
+      const sideCard = board[sideIndex];
+
+      board[oldIndex] = sideCard;
+      board[sideIndex] = null;
+
+      applyColumnGravity(sideCol);
+    } else {
+      applyColumnGravity(oldRC.c);
+    }
+
+    timeMinutes += 10;
+    turns++;
+    pendingIndices = [];
+    isBusy = false;
+    render();
+  }
+
+  function computeActionGroupForSpell(spellId, clickedIndex) {
+    const group = [];
+    if (spellId === 'whirlwind') {
+      const { r: pr, c: pc } = indexToRC(playerIndex);
+      for (let r = pr - 1; r <= pr + 1; r++) {
+        for (let c = pc - 1; c <= pc + 1; c++) {
+          if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+          const idx = rcToIndex(r, c);
+          if (idx === playerIndex) continue;
+          const card = board[idx];
+          if (card && card.type === 'enemy') group.push(idx);
+        }
+      }
+    } else if (spellId === 'beam') {
+      const { r: pr, c: pc } = indexToRC(playerIndex);
+      const { r: tr, c: tc } = indexToRC(clickedIndex);
+
+      let dr = 0;
+      let dc = 0;
+      if (tr === pr) {
+        dc = tc > pc ? 1 : -1;
+      } else if (tc === pc) {
+        dr = tr > pr ? 1 : -1;
+      } else {
+        return group;
+      }
+
+      let r = pr + dr;
+      let c = pc + dc;
+      while (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+        const idx = rcToIndex(r, c);
+        const card = board[idx];
+        if (card && card.type === 'enemy') group.push(idx);
+        r += dr;
+        c += dc;
+      }
+    } else if (spellId === 'midas') {
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        const card = board[i];
+        if (card && card.type === 'coin') group.push(i);
+      }
+    } else if (spellId === 'swap') {
+      if (clickedIndex !== playerIndex && board[clickedIndex]) {
+        group.push(playerIndex);
+        group.push(clickedIndex);
+      }
+    } else if (spellId === 'heal' || spellId === 'teleport') {
+      group.push(playerIndex);
+    }
+    return group;
+  }
+
+  function handleCardClick(index) {
+    if (isDead || isBusy || !gameStarted) return;
+
+    if (pendingIndices.length > 0) {
+      if (pendingIndices.includes(index)) {
+        if (selectedSpell) {
+          executeSpell(selectedSpell, index);
+        } else {
+          performMove(index);
+        }
+      } else {
+        pendingIndices = [];
+        render();
+      }
+      return;
+    }
+
+    if (selectedSpell) {
+      if (!spellTargets.has(index)) return;
+      const group = computeActionGroupForSpell(selectedSpell, index);
+      if (!group.length) return;
+      pendingIndices = group;
+      render();
+      return;
+    }
+
+    if (index === playerIndex) return;
+    if (!isAdjacent(playerIndex, index)) return;
+    if (!board[index]) return;
+
+    pendingIndices = [index];
+    render();
+  }
+
+  function swordImageForValue(val) {
+    const level = Number(val) || 0;
+    if (level <= 2) return 'Rusty Dagger(2).jpg';
+    if (level === 3) return 'Simple bronze sword(3).jpg';
+    if (level === 4) return 'Fighting Axe(4).jpg';
+    if (level === 5) return 'Knight Sword(5).jpg';
+    if (level === 6) return 'Runic Enchanted Sword(6).jpg';
+    // level >= 7
+    return 'Legendary Sword(7).jpg';
+  }
+
+  function getEnemyImage(value) {
+    if (value === Infinity) return 'Horror(inf).jpg';
+    const v = Number(value) || 0;
+    if (v <= 3) return 'Annoying Rat(3).jpg';
+    if (v === 4) return 'Slime(4).jpg';
+    if (v === 5) return 'Skeleton(5).jpg';
+    if (v === 6) return 'Minotaur(6).jpg';
+    if (v === 7) return 'Troll(7).jpg';
+    if (v === 8) return 'Phantom(8).jpg';
+    // v >= 9
+    return 'Tarrasque(9).jpg';
+  }
+
+  function getGoldImage(value) {
+    const v = Number(value) || 0;
+    if (v === 1) return 'Small  Pocket(1).jpg'; // двойной пробел в имени файла
+    if (v === 2) return 'Bag of Coins(2).jpg';
+    if (v === 3) return 'Big Bag of Coins(3).jpg';
+    if (v === 4) return 'Vessel of Coins(4).jpg';
+    // v >= 5
+    return 'Coin Chest(5).jpg';
+  }
+
+  function getPotionImage(value) {
+    const v = Number(value) || 0;
+    if (v <= 2) return 'Apple(2).jpg';
+    if (v === 3) return 'Bondage(3).jpg';
+    if (v === 4) return 'Small Flask(4).jpg';
+    if (v === 5) return 'Starry Flask(5).jpg';
+    // v >= 6
+    return 'Divine Healing(6).jpg';
+  }
+
+  function getManaImage(value) {
+    const v = Number(value) || 0;
+    if (v <= 1) return 'Mana Orb(1).jpg';
+    if (v === 2) return 'Double Orb(2).jpg';
+    // v >= 3
+    return 'Mana Potion(3).jpg';
+  }
+
+
+
+  function createCardElement(card) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-wrapper';
+    wrapper.dataset.id = String(card.id);
+    wrapper.dataset.index = '0';
+
+    const inner = document.createElement('div');
+    inner.className = 'card-inner';
+
+    const content = document.createElement('div');
+    content.className = 'card-content';
+
+    // Ensure no stray text/emoji overlays for graphical card types
+    const graphicalTypes = ['player', 'enemy', 'sword', 'potion', 'mana', 'coin'];
+    if (graphicalTypes.includes(card.type)) {
+      content.innerText = '';
+    }
+
+    // Apply sword background art instead of emoji
+    if (card.type === 'sword') {
+      const imgPath = swordImageForValue(card.val);
+      content.style.backgroundImage = `url("${imgPath}")`;
+      content.style.backgroundSize = 'cover';
+      content.style.backgroundPosition = 'center';
+      content.style.backgroundRepeat = 'no-repeat';
+    }
+
+    // Apply enemy background art instead of emoji
+    if (card.type === 'enemy') {
+      const imgPath = getEnemyImage(card.val);
+      content.style.backgroundImage = `url("${imgPath}")`;
+      content.style.backgroundSize = 'cover';
+      content.style.backgroundPosition = 'center';
+      content.style.backgroundRepeat = 'no-repeat';
+    }
+
+    // Apply gold background art instead of emoji
+    if (card.type === 'coin') {
+      const imgPath = getGoldImage(card.val);
+      content.style.backgroundImage = `url("${imgPath}")`;
+      content.style.backgroundSize = 'cover';
+      content.style.backgroundPosition = 'center';
+      content.style.backgroundRepeat = 'no-repeat';
+    }
+
+    // Apply potion background art
+    if (card.type === 'potion') {
+      const imgPath = getPotionImage(card.val);
+      content.style.backgroundImage = `url("${imgPath}")`;
+      content.style.backgroundSize = 'cover';
+      content.style.backgroundPosition = 'center';
+      content.style.backgroundRepeat = 'no-repeat';
+    }
+
+    // Apply mana background art
+    if (card.type === 'mana') {
+      const imgPath = getManaImage(card.val);
+      content.style.backgroundImage = `url("${imgPath}")`;
+      content.style.backgroundSize = 'cover';
+      content.style.backgroundPosition = 'center';
+      content.style.backgroundRepeat = 'no-repeat';
+    }
+
+    // For non-player cards: floating value in cut corner
+    if (card.type !== 'player') {
+      const statValue = document.createElement('div');
+      statValue.className = 'stat-floating-value';
+
+      // Type-specific stat coloring
+      if (card.type === 'mana') {
+        statValue.classList.add('stat-mana');
+      } else if (card.type === 'potion') {
+        statValue.classList.add('stat-potion');
+      } else if (card.type === 'sword') {
+        statValue.classList.add('stat-sword');
+      } else if (card.type === 'coin') {
+        statValue.classList.add('stat-gold');
+      } else if (card.type === 'enemy') {
+        statValue.classList.add('stat-enemy');
+      }
+
+      inner.appendChild(statValue);
+    }
+
+    // For player cards we don't add an emoji element or floating value, to avoid covering the art
+    inner.appendChild(content);
+    wrapper.appendChild(inner);
+
+    wrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = Number(wrapper.dataset.index);
+      handleCardClick(idx);
+    });
+
+    cardsLayer.appendChild(wrapper);
+    return wrapper;
+  }
+
+  function updateCardElement(wrapper, card, index) {
+    wrapper.dataset.index = String(index);
+    const inner = wrapper.querySelector('.card-inner');
+    const content = wrapper.querySelector('.card-content');
+    const emojiSpan = wrapper.querySelector('.card-emoji');
+    const valSpan = wrapper.querySelector('.stat-floating-value');
+    const infoSpans = wrapper.querySelectorAll('.card-info span');
+
+    let emoji = '';
+    let valText = '';
+    let infoLeft = '';
+    let infoRight = '';
+    let valColor = '#ffffff';
+
+    // Reset classes
+    if (inner) inner.className = 'card-inner';
+    if (content) content.className = 'card-content';
+
+    if (card.type === 'player') {
+      // No emoji or clipped corner for player; the art is shown via background image
+      emoji = '';
+      valText = String(player.hp);
+      valColor = '#ffffff';
+      if (content) content.classList.add('player');
+      infoRight = player.weapon > 0 ? `🛡 ${player.weapon}` : '';
+      if (inner) inner.classList.add('player');
+    } else if (card.type === 'enemy') {
+      emoji = '';
+      if (content) {
+        content.classList.add('enemy', 'clipped-corner');
+      }
+      valText = String(card.val);
+      // enemy color is controlled via .stat-enemy class
+      valColor = '';
+      infoRight = '';
+      if (inner) inner.classList.add('enemy');
+    } else if (card.type === 'potion') {
+      emoji = '❤️';
+      if (content) {
+        content.classList.add('potion', 'clipped-corner');
+      }
+      valText = String(card.val);
+      // зелёный, как цвет зелья/хп
+      valColor = '#2ecc71';
+      infoRight = '';
+      if (inner) inner.classList.add('potion');
+    } else if (card.type === 'coin') {
+      emoji = '💰';
+      if (content) {
+        content.classList.add('coin', 'clipped-corner');
+      }
+      valText = String(card.val);
+      valColor = '#ffd447';
+      infoRight = '';
+      if (inner) inner.classList.add('coin');
+    } else if (card.type === 'sword') {
+      emoji = '🗡️';
+      if (content) {
+        content.classList.add('sword', 'clipped-corner');
+      }
+      valText = String(card.val);
+      // синий, как цвет меча
+      valColor = '#3b82f6';
+      infoRight = '';
+      if (inner) inner.classList.add('sword');
+    } else if (card.type === 'mana') {
+      emoji = '🔮';
+      if (content) {
+        content.classList.add('mana', 'clipped-corner');
+      }
+      valText = String(card.val);
+      // фиолетовый, как цвет маны
+      valColor = '#6b5bff';
+      infoRight = '';
+      if (inner) inner.classList.add('mana');
+    }
+
+    if (content && emojiSpan) {
+      emojiSpan.textContent = emoji;
+    }
+    if (valSpan) {
+      if (card.type === 'enemy' && card.val === Infinity) {
+        valSpan.textContent = '∞';
+        valSpan.style.fontSize = '1.8rem';
+      } else {
+        valSpan.textContent = valText;
+        valSpan.style.fontSize = '1.4rem';
+      }
+
+      // Only apply inline color when explicitly set; type-based classes handle the rest
+      if (valColor) {
+        valSpan.style.color = valColor;
+      }
+
+      if (card.type === 'enemy' && typeof card.maxVal === 'number' && card.val < card.maxVal) {
+        valSpan.classList.add('damaged');
+      } else {
+        valSpan.classList.remove('damaged');
+      }
+    }
+    if (infoSpans.length === 2) {
+      infoSpans[0].textContent = infoLeft;
+      infoSpans[1].textContent = infoRight;
+    }
+
+    const { r, c } = indexToRC(index);
+    const finalLeft = c * 20;
+    const finalTop = r * 20;
+
+    // Spawn animation: first time opacity is empty
+    if (wrapper.style.opacity === '') {
+      wrapper.style.opacity = '0';
+      wrapper.style.left = finalLeft + '%';
+      wrapper.style.top = (finalTop - 20) + '%';
+
+      requestAnimationFrame(() => {
+        wrapper.style.opacity = '1';
+        wrapper.style.top = finalTop + '%';
+      });
+    } else {
+      wrapper.style.left = finalLeft + '%';
+      wrapper.style.top = finalTop + '%';
+    }
+  }
+
+  function updateHighlights() {
+    domCards.forEach((wrapper) => {
+      wrapper.classList.remove('active', 'spell-target', 'lifted', 'dim');
+    });
+
+    if (pendingIndices.length > 0) {
+      domCards.forEach(wrapper => wrapper.classList.add('dim'));
+      pendingIndices.forEach(idx => {
+        const card = board[idx];
+        if (!card) return;
+        const wrapper = domCards.get(card.id);
+        if (wrapper) {
+          wrapper.classList.remove('dim');
+          wrapper.classList.add('lifted');
+        }
+      });
+      return;
+    }
+
+    const playerWrapper = domCards.get(player.id);
+    if (playerWrapper) {
+      playerWrapper.classList.add('active');
+    }
+
+    if (!selectedSpell) {
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        if (i === playerIndex) continue;
+        const card = board[i];
+        if (!card) continue;
+        if (!isAdjacent(playerIndex, i)) continue;
+        const wrapper = domCards.get(card.id);
+        if (wrapper) wrapper.classList.add('active');
+      }
+    } else {
+      spellTargets.forEach(idx => {
+        const card = board[idx];
+        if (!card) return;
+        const wrapper = domCards.get(card.id);
+        if (wrapper) wrapper.classList.add('spell-target');
+      });
+    }
+  }
+
+  function render() {
+    hudHpEl.textContent = `${player.hp} / ${player.maxHp}`;
+    hudWeaponEl.textContent = `${player.weapon}`;
+    hudScoreEl.textContent = `${player.score}`;
+    hudManaEl.textContent = `${player.mana} / ${player.maxMana}`;
+    hudTimeEl.textContent = formatTime(timeMinutes);
+
+    checkSpellAvailability();
+
+    const seenIds = new Set();
+
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      const card = board[i];
+      if (!card) continue;
+
+      if (card.id == null) card.id = nextId++;
+
+      let wrapper = domCards.get(card.id);
+      if (!wrapper) {
+        wrapper = createCardElement(card);
+        domCards.set(card.id, wrapper);
+      }
+
+      updateCardElement(wrapper, card, i);
+      wrapper.classList.remove('removed');
+      seenIds.add(card.id);
+    }
+
+    domCards.forEach((wrapper, id) => {
+      if (!seenIds.has(id)) {
+        wrapper.classList.add('removed');
+        setTimeout(() => {
+          if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+        }, 200);
+        domCards.delete(id);
+      }
+    });
+
+    updateHighlights();
+  }
+
+  function resetGame() {
+    board = new Array(BOARD_SIZE).fill(null);
+    player = {
+      id: 1,
+      type: 'player',
+      hp: PLAYER_MAX_HP,
+      maxHp: PLAYER_MAX_HP,
+      weapon: 0,
+      score: 0,
+      mana: 0,
+      maxMana: PLAYER_MAX_MANA
+    };
+    nextId = 2;
+    playerIndex = CENTER_INDEX;
+    turns = 0;
+    isDead = false;
+    isBusy = false;
+    timeMinutes = 8 * 60;
+    gameRoot.classList.remove('dead');
+    midasCurseActive = false;
+    clearSpellSelection();
+    pendingIndices = [];
+
+    domCards.forEach(wrapper => wrapper.remove());
+    domCards.clear();
+
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      if (i === CENTER_INDEX) {
+        board[i] = player;
+      } else {
+        board[i] = createRandomCard();
+      }
+    }
+
+    hideOverlay();
+    restartBtn.classList.add('hidden');
+    render();
+  }
+
+  restartBtn.addEventListener('click', resetGame);
+  overlayRestart.addEventListener('click', resetGame);
+
+  if (resultMenuBtn) {
+    resultMenuBtn.addEventListener('click', () => {
+      returnToMenu();
+    });
+  }
+
+  // Click on empty board area cancels pending action or spell
+  document.getElementById('game-board').addEventListener('click', (e) => {
+    if (isDead || isBusy || !gameStarted) return;
+    if (e.target === e.currentTarget) {
+      if (pendingIndices.length > 0) {
+        pendingIndices = [];
+        render();
+        return;
+      }
+      if (selectedSpell) {
+        clearSpellSelection();
+        render();
+      }
+    }
+  });
+
+  Object.entries(spellButtons).forEach(([id, btn]) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isDead || isBusy || !gameStarted) return;
+      if (btn.classList.contains('disabled')) return;
+      if (pendingIndices.length > 0) {
+        pendingIndices = [];
+      }
+      selectSpell(id);
+    });
+  });
+
+  // Main menu interactions
+  loadBestScore();
+
+  if (btnEnterGame) {
+    btnEnterGame.addEventListener('click', () => {
+      if (gameStarted) return;
+      gameStarted = true;
+
+      if (gameBoardEl) {
+        gameBoardEl.style.display = 'block';
+      }
+
+      if (mainMenuEl) {
+        mainMenuEl.classList.add('hidden');
+        setTimeout(() => {
+          mainMenuEl.style.display = 'none';
+        }, 450);
+      }
+    });
+  }
+
+  if (btnGrimoire) {
+    btnGrimoire.addEventListener('click', () => {
+      if (helpModalEl) {
+        helpModalEl.classList.add('active');
+      }
+    });
+  }
+
+  if (helpCloseBtn) {
+    helpCloseBtn.addEventListener('click', () => {
+      if (helpModalEl) {
+        helpModalEl.classList.remove('active');
+      }
+    });
+  }
+
+  if (helpModalEl) {
+    helpModalEl.addEventListener('click', (e) => {
+      if (e.target === helpModalEl) {
+        helpModalEl.classList.remove('active');
+      }
+    });
+  }
+
+  initBackgroundSlots();
+  resetGame();
+})();
+</script>
+</body>
+</html>
